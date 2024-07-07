@@ -1,6 +1,9 @@
 import random
 from bin import Bin
 from item import Item
+from tabulate import tabulate
+from colorama import Fore, Style, init
+init(autoreset=True)
 
 def best_fit_decreasing(items, bin_capacity):
     # Step 1: Sort items in decreasing order of size
@@ -30,50 +33,67 @@ def best_fit_decreasing(items, bin_capacity):
     
     return bins
 
-def generate_items(n, upper_bound = 1, lower_bound = 0):
-    items = [Item(id,random.randint(lower_bound, upper_bound)) for id in range(n)]
+def generate_random_items(n, upper_bound):
+    return [Item(id, random.randint(1, upper_bound)) for id in range(n)]
+
+def get_manual_input(num_items, bin_capacity):
+    items = []
+    for i in range(num_items):
+        item_id = i
+        while True:
+            item_size = float(input(f"Enter size of item {item_id}: "))
+            if item_size > bin_capacity:
+                print(f"Item size cannot be greater than bin capacity ({bin_capacity}). Please enter a valid size.")
+            else:
+                break
+        items.append(Item(item_id, item_size))
     return items
 
+def print_items(items):
+    table = [[item.get_id(), item.get_size()] for item in items]
+    headers = ["Item ID", "Item Size"]
+    print(Fore.CYAN + "\nItems to be packed:")
+    print(tabulate(table, headers, tablefmt="pretty"))
+    print()
 
-
-
+def print_bins(bins):
+    results = []
+    for i, bin in enumerate(bins):
+        item_details = [f"ID: {item.get_id()} (Size: {item.get_size()})" for item in bin.items]
+        results.append([f"Bin {i+1}", ', '.join(item_details), bin.get_current_space()])
+    headers = ["Bin", "Items", "Space Left"]
+    print(Fore.GREEN + "\nPacked Bins:")
+    print(tabulate(results, headers, tablefmt="pretty"))
+    print()
 
 def main():
-    # Define the bin capacity
-    bin_capacity = 100.0
+    num_items = int(input("Enter number of items: "))
+    bin_capacity = float(input("Enter bin capacity: "))
 
-    # Define items with id and size
-    # items = generate_items(10, 10)
+    print("Choose input method:")
+    print("1. Manual input")
+    print("2. Use random item sizes")
+    choice = input("Enter your choice (1 or 2): ")
 
-    items = [Item(0,82), Item(1,43), Item(2,40), Item(3,15), Item(4,12), Item(5,6) ]
+    if choice == "1":
+        items = get_manual_input(num_items, bin_capacity)
+    elif choice == "2":
+        items = generate_random_items(num_items, upper_bound=int(bin_capacity))
+    else:
+        print("Invalid choice. Exiting.")
+        return
 
-    # Apply Best Fit Decreasing algorithm
+    # Print the items
+    print_items(items)
+
+    # Run the test case with the selected inputs
     bins = best_fit_decreasing(items, bin_capacity)
 
     # Print the results
-    for i, bin in enumerate(bins):
-        item_ids = [item.get_id() for item in bin.items]
-        print(f"Bin {i+1} (space left: {bin.get_current_space()}): Items {item_ids}")
-
-
-
-
-def run_test_case(test_case_number, items, bin_capacity, expected_output):
-    print(f"Running Test Case {test_case_number}")
-    bins = best_fit_decreasing(items, bin_capacity)
-    actual_output = [[item.get_id() for item in bin.items] for bin in bins]
-    
-    if actual_output == expected_output:
-        print(f"Test Case {test_case_number} Passed")
-    else:
-        print(f"Test Case {test_case_number} Failed")
-        print(f"Expected: {expected_output}")
-        print(f"Got: {actual_output}")
-    print()
-
+    print_bins(bins)
+        
+    # Wait for user input before closing
+    input(Fore.YELLOW + "Press Enter to exit...")
 
 if __name__ == "__main__":
     main()
-
-
-
